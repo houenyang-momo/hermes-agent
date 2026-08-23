@@ -2496,6 +2496,22 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
             agent._client_log_context(),
         )
         return client
+    if agent.provider in {"gemini-oauth", "google-oauth", "gemini-cloudcode", "antigravity-gemini"}:
+        from plugins.model_providers.gemini_oauth.client import AntigravityGeminiClient
+        base_url = str(client_kwargs.get("base_url", "") or "")
+        safe_kwargs = {
+            k: v for k, v in client_kwargs.items()
+            if k in {"default_headers", "timeout", "http_client"}
+        }
+        access_token = client_kwargs.get("api_key", "")
+        client = AntigravityGeminiClient(access_token=access_token, base_url=base_url or "https://daily-cloudcode-pa.googleapis.com", **safe_kwargs)
+        _ra().logger.info(
+            "Antigravity Gemini OAuth client created (%s, shared=%s) %s",
+            reason,
+            shared,
+            agent._client_log_context(),
+        )
+        return client
     if agent.provider == "gemini":
         from agent.gemini_native_adapter import GeminiNativeClient, is_native_gemini_base_url
 

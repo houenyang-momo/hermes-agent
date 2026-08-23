@@ -46,7 +46,13 @@ class AntigravityGeminiClient:
         **_: Any,
     ):
         self.access_token = access_token
-        self.base_url = (base_url or DEFAULT_ANTIGRAVITY_BASE_URL).rstrip("/")
+        self.api_key = access_token
+        normalized_base = (base_url or DEFAULT_ANTIGRAVITY_BASE_URL).rstrip("/")
+        if normalized_base.endswith("/v1"):
+            normalized_base = normalized_base[:-3]
+        if normalized_base.endswith("/openai"):
+            normalized_base = normalized_base[:-7]
+        self.base_url = normalized_base
         self._default_headers = dict(default_headers or {})
         self.chat = _AntigravityChatNamespace(self)
         self.is_closed = False

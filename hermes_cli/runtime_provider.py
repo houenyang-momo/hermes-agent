@@ -500,7 +500,7 @@ def _resolve_runtime_from_pool_entry(
         base_url = base_url or "https://api.anthropic.com"
     elif provider == "gemini-oauth":
         api_mode = "chat_completions"
-        base_url = base_url or "https://generativelanguage.googleapis.com/v1beta"
+        base_url = base_url or "https://daily-cloudcode-pa.googleapis.com"
     elif provider == "minimax-oauth":
         # MiniMax OAuth tokens are valid only against the Anthropic Messages
         # compatible endpoint. Do not honor stale model.api_mode values from a
@@ -2193,8 +2193,7 @@ def resolve_runtime_provider(
             return {
                 "provider": "gemini-oauth",
                 "api_mode": "chat_completions",
-                "base_url": "https://generativelanguage.googleapis.com/v1beta",
-                "api_key": token,
+                "base_url": "https://daily-cloudcode-pa.googleapis.com",
                 "source": "antigravity_oauth",
                 "requested_provider": requested_provider,
             }
