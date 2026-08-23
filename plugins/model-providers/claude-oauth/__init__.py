@@ -108,11 +108,13 @@ claude_oauth = ClaudeOAuthProfile(
     supports_vision_tool_messages=True,
     default_max_tokens=65536,
     fallback_models=(
+        "claude-opus-5",
+        "claude-opus-5-fast",
+        "claude-opus-4-8",
+        "claude-opus-4-8-fast",
         "claude-3-7-sonnet-20250219",
         "claude-3-5-sonnet-20241022",
         "claude-3-5-haiku-20241022",
-        "claude-opus-4-8",
-        "claude-opus-5",
     ),
     default_aux_model="claude-3-5-haiku-20241022",
     default_headers={

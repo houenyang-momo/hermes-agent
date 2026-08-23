@@ -854,11 +854,12 @@ def _model_flow_claude_oauth(_config, current_model="", *, args=None):
         return
 
     models = [
+        "claude-opus-5",
+        "claude-opus-5-fast",
+        "claude-opus-4-8",
         "claude-3-7-sonnet-20250219",
         "claude-3-5-sonnet-20241022",
         "claude-3-5-haiku-20241022",
-        "claude-opus-4-8",
-        "claude-opus-5",
     ]
     default = current_model if current_model in models else models[0]
     selected = _prompt_model_selection(
