@@ -1,0 +1,5 @@
+name: claude-oauth-provider
+kind: model-provider
+version: 1.0.0
+description: Anthropic Claude (Claude Code OAuth & Setup-Token with Thinking & Prompt Caching)
+author: JARVIS Core

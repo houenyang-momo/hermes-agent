@@ -837,6 +837,80 @@ def _model_flow_qwen_oauth(_config, current_model=""):
         print(f"Default model set to: {selected} (via Qwen OAuth)")
     else:
         print("No change.")
+def _model_flow_claude_oauth(_config, current_model="", *, args=None):
+    """Claude Code OAuth provider: check ~/.claude/.credentials.json, then pick model."""
+    from plugins.model_providers.claude_oauth.token_store import ClaudeOAuthTokenStore
+    from hermes_cli.auth import (
+        _prompt_model_selection,
+        _save_model_choice,
+        _update_config_for_provider,
+    )
+    store = ClaudeOAuthTokenStore()
+    token = store.get_token()
+    if not token:
+        print("Not logged into Claude Code OAuth.")
+        print(f"Expected credentials file: {store.get_credentials_path()}")
+        print("Run: claude setup-token or sign in via Claude Code CLI.")
+        return
+
+    models = [
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022",
+        "claude-opus-4-8",
+        "claude-opus-5",
+    ]
+    default = current_model if current_model in models else models[0]
+    selected = _prompt_model_selection(
+        models,
+        current_model=default,
+        confirm_provider="claude-oauth",
+        confirm_base_url="https://api.anthropic.com",
+    )
+    if selected:
+        _save_model_choice(selected)
+        _update_config_for_provider("claude-oauth", "https://api.anthropic.com")
+        print(f"Default model set to: {selected} (via Claude Code OAuth)")
+    else:
+        print("No change.")
+
+
+def _model_flow_gemini_oauth(_config, current_model="", *, args=None):
+    """Google Gemini OAuth provider: check ~/.config/antigravity/tokens.json, then pick model."""
+    from plugins.model_providers.gemini_oauth.token_store import GeminiOAuthTokenStore
+    from hermes_cli.auth import (
+        _prompt_model_selection,
+        _save_model_choice,
+        _update_config_for_provider,
+    )
+    store = GeminiOAuthTokenStore()
+    token = store.get_token()
+    if not token:
+        print("Not logged into Google Gemini OAuth.")
+        print(f"Expected credentials file: {store.get_antigravity_tokens_path()}")
+        return
+
+    models = [
+        "gemini-3.7-flash-high",
+        "gemini-3.7-flash",
+        "gemini-3.7-pro",
+        "gemini-3.6-flash",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+    ]
+    default = current_model if current_model in models else models[0]
+    selected = _prompt_model_selection(
+        models,
+        current_model=default,
+        confirm_provider="gemini-oauth",
+        confirm_base_url="https://generativelanguage.googleapis.com/v1beta",
+    )
+    if selected:
+        _save_model_choice(selected)
+        _update_config_for_provider("gemini-oauth", "https://generativelanguage.googleapis.com/v1beta")
+        print(f"Default model set to: {selected} (via Google Gemini OAuth)")
+    else:
+        print("No change.")
 
 def _model_flow_minimax_oauth(config, current_model="", args=None):
     """MiniMax OAuth provider: ensure logged in, then pick model."""

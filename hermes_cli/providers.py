@@ -103,6 +103,18 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
         transport="anthropic_messages",
         extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"),
     ),
+    "claude-oauth": HermesOverlay(
+        transport="anthropic_messages",
+        auth_type="oauth_external",
+        base_url_override="https://api.anthropic.com",
+        extra_env_vars=("CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_OAUTH_TOKEN", "ANTHROPIC_TOKEN"),
+    ),
+    "gemini-oauth": HermesOverlay(
+        transport="gemini_native",
+        auth_type="oauth_external",
+        base_url_override="https://generativelanguage.googleapis.com/v1beta",
+        extra_env_vars=("GEMINI_OAUTH_TOKEN", "GOOGLE_OAUTH_TOKEN"),
+    ),
     "zai": HermesOverlay(
         transport="openai_chat",
         extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"),

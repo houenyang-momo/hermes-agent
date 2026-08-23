@@ -6534,6 +6534,46 @@ def resolve_provider_client(
         return (_to_async_client(client, final_model, is_vision=is_vision) if async_mode
                 else (client, final_model))
 
+    # ── Anthropic Claude OAuth ─────────────────────────────────────────
+    if provider in {"claude-oauth", "claude-code-oauth", "anthropic-oauth"}:
+        try:
+            from plugins.model_providers.claude_oauth.token_store import ClaudeOAuthTokenStore
+            claude_token = ClaudeOAuthTokenStore().get_token()
+        except Exception:
+            claude_token = None
+        if not claude_token:
+            try:
+                from agent.anthropic_adapter import resolve_anthropic_token
+                claude_token = resolve_anthropic_token()
+            except Exception:
+                claude_token = None
+        if not claude_token:
+            logger.warning("resolve_provider_client: claude-oauth requested but no token found")
+            return None, None
+        final_model = _normalize_resolved_model(model or "claude-3-7-sonnet-20250219", provider)
+        from agent.anthropic_adapter import build_anthropic_client
+        raw_client = build_anthropic_client(api_key=claude_token, base_url="https://api.anthropic.com")
+        client = AnthropicAuxiliaryClient(raw_client, final_model, api_key=claude_token, base_url="https://api.anthropic.com", is_oauth=True)
+        return (_to_async_client(client, final_model, is_vision=is_vision) if async_mode
+                else (client, final_model))
+
+    # ── Google Gemini OAuth (Antigravity & Cloud Code) ─────────────────
+    if provider in {"gemini-oauth", "google-oauth", "gemini-cloudcode", "antigravity-gemini"}:
+        try:
+            from plugins.model_providers.gemini_oauth.token_store import GeminiOAuthTokenStore
+            gemini_token = GeminiOAuthTokenStore().get_token()
+        except Exception:
+            gemini_token = None
+        if not gemini_token:
+            gemini_token = os.getenv("GEMINI_OAUTH_TOKEN") or os.getenv("GOOGLE_OAUTH_TOKEN")
+        if not gemini_token:
+            logger.warning("resolve_provider_client: gemini-oauth requested but no token found")
+            return None, None
+        final_model = _normalize_resolved_model(model or "gemini-3.7-flash-high", provider)
+        from plugins.model_providers.gemini_oauth.client import AntigravityGeminiClient
+        client = AntigravityGeminiClient(access_token=gemini_token, base_url="https://daily-cloudcode-pa.googleapis.com")
+        return (_to_async_client(client, final_model, is_vision=is_vision) if async_mode
+                else (client, final_model))
     # ── Custom endpoint (OPENAI_BASE_URL + OPENAI_API_KEY) ───────────
     if provider == "custom":
         custom_base = ""

@@ -495,6 +495,12 @@ def _resolve_runtime_from_pool_entry(
     elif provider == "qwen-oauth":
         api_mode = "chat_completions"
         base_url = base_url or DEFAULT_QWEN_BASE_URL
+    elif provider == "claude-oauth":
+        api_mode = "anthropic_messages"
+        base_url = base_url or "https://api.anthropic.com"
+    elif provider == "gemini-oauth":
+        api_mode = "chat_completions"
+        base_url = base_url or "https://generativelanguage.googleapis.com/v1beta"
     elif provider == "minimax-oauth":
         # MiniMax OAuth tokens are valid only against the Anthropic Messages
         # compatible endpoint. Do not honor stale model.api_mode values from a
@@ -503,7 +509,6 @@ def _resolve_runtime_from_pool_entry(
         api_mode = "anthropic_messages"
         pconfig = PROVIDER_REGISTRY.get(provider)
         base_url = base_url or (pconfig.inference_base_url if pconfig else "")
-    elif provider == "anthropic":
         api_mode = "anthropic_messages"
         cfg_provider = str(model_cfg.get("provider") or "").strip().lower()
         cfg_base_url = ""
@@ -2160,6 +2165,43 @@ def resolve_runtime_provider(
             "source": creds.get("source", "process"),
             "requested_provider": requested_provider,
         }
+    if provider == "claude-oauth":
+        try:
+            from plugins.model_providers.claude_oauth.token_store import ClaudeOAuthTokenStore
+            token = ClaudeOAuthTokenStore().get_token()
+            if not token:
+                raise AuthError("No Claude Code OAuth token found in ~/.claude/.credentials.json", provider="claude-oauth")
+            return {
+                "provider": "claude-oauth",
+                "api_mode": "anthropic_messages",
+                "base_url": "https://api.anthropic.com",
+                "api_key": token,
+                "source": "claude_code_oauth",
+                "requested_provider": requested_provider,
+            }
+        except AuthError:
+            if requested_provider != "auto":
+                raise
+            logger.info("Claude OAuth credentials failed; falling through.")
+
+    if provider == "gemini-oauth":
+        try:
+            from plugins.model_providers.gemini_oauth.token_store import GeminiOAuthTokenStore
+            token = GeminiOAuthTokenStore().get_token()
+            if not token:
+                raise AuthError("No Google OAuth token found in ~/.config/antigravity/tokens.json", provider="gemini-oauth")
+            return {
+                "provider": "gemini-oauth",
+                "api_mode": "chat_completions",
+                "base_url": "https://generativelanguage.googleapis.com/v1beta",
+                "api_key": token,
+                "source": "antigravity_oauth",
+                "requested_provider": requested_provider,
+            }
+        except AuthError:
+            if requested_provider != "auto":
+                raise
+            logger.info("Gemini OAuth credentials failed; falling through.")
 
     # Anthropic (native Messages API)
     if provider == "anthropic":

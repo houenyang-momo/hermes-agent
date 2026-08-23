@@ -282,6 +282,18 @@ PROVIDER_REGISTRY: Dict[str, ProviderConfig] = {
         auth_type="oauth_external",
         inference_base_url=DEFAULT_QWEN_BASE_URL,
     ),
+    "claude-oauth": ProviderConfig(
+        id="claude-oauth",
+        name="Claude (Claude Code OAuth)",
+        auth_type="oauth_external",
+        inference_base_url="https://api.anthropic.com",
+    ),
+    "gemini-oauth": ProviderConfig(
+        id="gemini-oauth",
+        name="Google Gemini (OAuth)",
+        auth_type="oauth_external",
+        inference_base_url="https://generativelanguage.googleapis.com/v1beta",
+    ),
     "lmstudio": ProviderConfig(
         id="lmstudio",
         name="LM Studio",
@@ -7246,6 +7258,20 @@ def get_auth_status(provider_id: Optional[str] = None) -> Dict[str, Any]:
         return get_qwen_auth_status()
     if target == "minimax-oauth":
         return get_minimax_oauth_auth_status()
+    if target in {"claude-oauth", "claude-code-oauth", "anthropic-oauth"}:
+        try:
+            from plugins.model_providers.claude_oauth.token_store import ClaudeOAuthTokenStore
+            token = ClaudeOAuthTokenStore().get_token()
+            return {"logged_in": bool(token), "provider": "claude-oauth", "source": "claude_code"}
+        except Exception:
+            return {"logged_in": False, "provider": "claude-oauth"}
+    if target in {"gemini-oauth", "google-oauth", "gemini-cloudcode", "antigravity-gemini"}:
+        try:
+            from plugins.model_providers.gemini_oauth.token_store import GeminiOAuthTokenStore
+            token = GeminiOAuthTokenStore().get_token()
+            return {"logged_in": bool(token), "provider": "gemini-oauth", "source": "antigravity"}
+        except Exception:
+            return {"logged_in": False, "provider": "gemini-oauth"}
     if target == "copilot-acp":
         return get_external_process_provider_status(target)
     if target == "azure-foundry":

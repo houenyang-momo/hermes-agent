@@ -1189,6 +1189,7 @@ def refresh_anthropic_oauth_pure(refresh_token: str, *, use_json: bool = False) 
         content_type = "application/x-www-form-urlencoded"
 
     token_endpoints = [
+        "https://api.anthropic.com/v1/oauth/token",
         "https://platform.claude.com/v1/oauth/token",
         "https://console.anthropic.com/v1/oauth/token",
     ]

@@ -1091,13 +1091,17 @@ class GeminiNativeClient:
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "x-goog-api-key": self.api_key,
             # Include Hermes client context following Gemini's partner
             # integration guidance.
             # See https://ai.google.dev/gemini-api/docs/partner-integration
             "User-Agent": f"hermes-agent/{_HERMES_VERSION} (gemini-native)",
             "X-Goog-Api-Client": f"hermes-agent/{_HERMES_VERSION}",
         }
+        if self.api_key.startswith("ya29.") or self.api_key.startswith("Bearer "):
+            clean_token = self.api_key.replace("Bearer ", "").strip()
+            headers["Authorization"] = f"Bearer {clean_token}"
+        else:
+            headers["x-goog-api-key"] = self.api_key
         headers.update(self._default_headers)
         return headers
 

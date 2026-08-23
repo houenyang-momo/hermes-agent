@@ -1,0 +1,5 @@
+name: gemini-oauth-provider
+kind: model-provider
+version: 1.0.0
+description: Google Gemini (Antigravity & Cloud Code OAuth with Thinking & Thought-Signature Sanitization)
+author: JARVIS Core
