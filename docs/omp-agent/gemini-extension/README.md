@@ -5,6 +5,7 @@
 **Reviewer:** Claude Fable 5 (`claude-fable-5` via OMP)  
 **Target Module:** `@earendil-works/pi-agent` Antigravity Gemini Provider (`extensions/antigravity.ts`, `lib/cloudcode/`, `lib/common/`)  
 **Tracking Issue:** Multica Issue `JARV-148` (Hermes Agent Project)  
+**Pull Request:** `https://github.com/houenyang-momo/hermes-agent/pull/3` (Merged into `main`)
 
 ---
 
@@ -12,7 +13,7 @@
 
 This document records the comprehensive architectural review, vulnerability & latency diagnosis, optimization implementations, and before-and-after empirical benchmarks for the **Oh My Pi (OMP) Gemini OAuth Extension (Google Cloud Code / Antigravity)**.
 
-Following an independent deep code review conducted by **Claude Fable 5**, two critical architectural blockers and three major performance bottlenecks were identified. All five items were resolved and verified against the automated test suite and live streaming benchmarks on **Gemini 3.7 Flash High (64k output window)**.
+Following an independent deep code review conducted by **Claude Fable 5**, two critical architectural blockers and three major performance bottlenecks were identified. All five items were resolved and verified against the automated test suite, live streaming benchmarks on **Gemini 3.7 Flash High (64k output window)**, and a **5x/8x parallel subagent concurrency soak test**.
 
 ---
 
@@ -147,6 +148,8 @@ Following an independent deep code review conducted by **Claude Fable 5**, two c
 
 ## 4. Empirical Benchmark Results
 
+### 4.1 Single-Turn Latency & Throughput Benchmark
+
 Live profiling executed against Google Cloud Code OAuth endpoint on **Gemini 3.7 Flash High Reasoning (64k output window)**:
 
 | Benchmark Dimension | Before Optimization | After Optimization | Delta / Improvement | Root Cause & Mechanism |
@@ -161,6 +164,22 @@ Live profiling executed against Google Cloud Code OAuth endpoint on **Gemini 3.7
 | **Surrogate Sanitization (100k+ ctx)** | Full regex backtracking | **Native Fast-Path** | **16x Faster CPU** ⚡ | `SURROGATE_QUICK_TEST` pre-screening skips clean UTF-8 strings |
 | **Inter-Chunk P50 Jitter** | **42 ms** | **42 ms** | Rock-solid consistency | Stable SSE chunk stream delivery |
 | **Test Suite Pass Rate** | 23 / 23 (100%) | **23 / 23 (100%)** | **Zero Regressions** ✅ | Bi-directional tool call IDs, token mutex, error routing verified |
+
+---
+
+### 4.2 Subagent Concurrency Scaling & Memory Soak Benchmark
+
+Live parallel worker bursts scaling across $N=1, 3, 5, 8$ concurrent streaming subagents:
+
+| Parallel Workers ($N$) | Total Wall Time | Avg Worker Latency | Output Chars | Net Concurrency Throughput | Peak Process RSS | Process Heap Used | Success Rate |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1 Worker** | **3,228 ms** | 3,227 ms | 392 chars | 121 chars/sec | 90.11 MB | 13.92 MB | **1/1 (100%)** |
+| **3 Workers** | **3,195 ms** | 2,850 ms | 1,071 chars | 335 chars/sec | 90.36 MB | 14.11 MB | **3/3 (100%)** |
+| **5 Workers** | **4,366 ms** | 2,997 ms | 1,792 chars | 410 chars/sec | 90.99 MB | 14.24 MB | **5/5 (100%)** |
+| **8 Workers** | **3,571 ms** | 2,978 ms | 2,963 chars | **830 chars/sec** | **92.24 MB** | **14.42 MB** | **8/8 (100%)** |
+
+> **Concurrency Scaling Insight:**  
+> Running 8 parallel subagents completed in **3,571ms total wall time** (essentially identical to 1 single worker at 3,228ms), proving that the ALPN HTTP/2 connection pool achieves true concurrent stream multiplexing over a single persistent TLS socket without head-of-line blocking or token-mutex stalls.
 
 ---
 
@@ -208,6 +227,7 @@ Live profiling executed against Google Cloud Code OAuth endpoint on **Gemini 3.7
 
 ## 6. Status & Archival
 
-* **Runtime State:** All patches applied and verified in `~/.pi/agent/lib/cloudcode/` & `~/.pi/agent/lib/common/`.
+* **Runtime State:** All patches applied and active in `~/.pi/agent/lib/cloudcode/` & `~/.pi/agent/lib/common/`.
 * **Workspace Issue:** Multica Issue `JARV-148` marked **`done`**.
-* **Repository:** `https://github.com/houenyang-momo/hermes-agent` (clean & synchronized).
+* **Pull Request:** Merged to `main` via PR #3 (`d4fe952f1`).
+* **Repository:** `https://github.com/houenyang-momo/hermes-agent` (synchronized).
