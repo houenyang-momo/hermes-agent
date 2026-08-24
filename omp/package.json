@@ -1,0 +1,22 @@
+{
+  "name": "@houenyang/omp-gemini-oauth-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "benchmark": "bun run lib/cloudcode/performance-optimizations.benchmark.ts",
+    "benchmark:reasoning-off": "bun run lib/cloudcode/reasoning-off-benchmark.ts",
+    "profile": "bun run lib/cloudcode/profile-latency-tools.ts",
+    "test": "bun test lib/common/provider-modernization.test.ts lib/cloudcode/performance-optimizations.test.ts && bun run lib/cloudcode/test-suite.ts"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "npm:@oh-my-pi/pi-ai@18.0.4",
+    "@earendil-works/pi-coding-agent": "npm:@oh-my-pi/pi-coding-agent@18.0.4",
+    "@earendil-works/pi-tui": "npm:@oh-my-pi/pi-tui@18.0.4"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14"
+  },
+  "engines": {
+    "bun": ">=1.3.14"
+  }
+}

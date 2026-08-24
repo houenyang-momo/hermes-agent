@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-24",
+  "environment": {
+    "runtime": "bun 1.4.0",
+    "endpoint": "https://daily-cloudcode-pa.googleapis.com",
+    "model": "gemini-3.7-flash-tiered"
+  },
+  "microbenchmarks": {
+    "command": "bun run omp/lib/cloudcode/performance-optimizations.benchmark.ts",
+    "before": {
+      "sessionFastPath10000Ms": 86.827,
+      "surrogateClean100000Ms": 1282.01,
+      "cursorParser10000EventsMs": 13.756,
+      "watchdogTimerAllocations257Chunks": 257,
+      "onDemandHttp2Route": "fetch",
+      "cloudCodeInitializationWarmCalls": 0,
+      "reasoningOff": {
+        "thinkingLevel": "low",
+        "includeThoughts": false
+      }
+    },
+    "after": {
+      "sessionFastPath10000Ms": 0.52,
+      "surrogateClean100000Ms": 1.227,
+      "cursorParser10000EventsMs": 8.177,
+      "watchdogTimerAllocations257Chunks": 1,
+      "onDemandHttp2Route": "http2",
+      "cloudCodeInitializationWarmCalls": 1,
+      "reasoningOff": {
+        "thinkingBudget": 0,
+        "includeThoughts": false
+      }
+    },
+    "afterReviewFixes": {
+      "sessionFastPath10000Ms": 0.82,
+      "surrogateClean100000Ms": 2.06,
+      "cursorParser10000EventsMs": 9.405,
+      "watchdogTimerAllocations257Chunks": 1,
+      "onDemandHttp2Route": "http2",
+      "cloudCodeInitializationWarmCalls": 1,
+      "reasoningOff": {
+        "thinkingBudget": 0,
+        "includeThoughts": false
+      }
+    },
+    "improvementPercent": {
+      "sessionFastPath": 99.4,
+      "surrogateCleanPath": 99.9,
+      "cursorParser": 40.56,
+      "watchdogTimerAllocations": 99.61
+    }
+  },
+  "liveStreamingProfile": {
+    "command": "bun run omp/lib/cloudcode/profile-latency-tools.ts",
+    "before": {
+      "ttftMs": 5278,
+      "totalMs": 8443,
+      "chunks": 78,
+      "charsPerSecond": 920,
+      "maxChunkGapMs": 5275,
+      "memoryDeltaMb": 3.86,
+      "completion": "stop"
+    },
+    "after": {
+      "ttftMs": 5448,
+      "totalMs": 8511,
+      "chunks": 77,
+      "charsPerSecond": 896,
+      "maxChunkGapMs": 5444,
+      "memoryDeltaMb": 4.01,
+      "completion": "stop"
+    },
+    "afterReviewFixes": {
+      "ttftMs": 5566,
+      "totalMs": 9486,
+      "chunks": 67,
+      "charsPerSecond": 709,
+      "maxChunkGapMs": 5213,
+      "memoryDeltaMb": 7,
+      "completion": "stop"
+    },
+    "interpretation": "All runs completed without a stall. Single live samples are network- and generation-bound; no latency improvement is claimed from these samples."
+  },
+  "reasoningOffLive": {
+    "command": "bun run omp/lib/cloudcode/reasoning-off-benchmark.ts",
+    "firstTextMs": 1970.979,
+    "totalMs": 1971.96,
+    "eventCount": 6,
+    "text": "OK",
+    "completion": "stop",
+    "interpretation": "The backend accepted thinkingBudget=0 and emitted no thinking events. The observed remote first-text latency did not meet 300ms."
+  },
+  "gauntlet": {
+    "command": "bun run omp/lib/cloudcode/gauntlet-benchmark.ts",
+    "before": "blocked: agy exited with code 1 in Test 1",
+    "after": "blocked: agy exited with code 1 in Test 1"
+  },
+  "verification": {
+    "requiredSuite": {
+      "command": "bun run omp/lib/cloudcode/test-suite.ts",
+      "passed": 23,
+      "failed": 0
+    },
+    "optimizationAndTransportTests": {
+      "command": "bun test omp/lib/common/provider-modernization.test.ts omp/lib/cloudcode/performance-optimizations.test.ts",
+      "passed": 21,
+      "failed": 0
+    },
+    "extensionImport": {
+      "command": "bun -e 'await import(\"./extensions/antigravity.ts\")'",
+      "passed": true
+    }
+  }
+}
