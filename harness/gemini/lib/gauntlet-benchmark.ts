@@ -1,5 +1,5 @@
 /**
- * Gauntlet Benchmark: Antigravity CLI vs Pi Antigravity Native Stream
+ * Gauntlet Benchmark: Unoptimized Baseline vs Pi Antigravity Native Stream
  *
  * Measures:
  * 1. Time to First Token (TTFT)
@@ -21,57 +21,6 @@ interface BenchmarkResult {
 	outputChars: number;
 	charsPerSec: number;
 	outputSnippet: string;
-}
-
-async function runAgyCli(prompt: string, effort = "high"): Promise<BenchmarkResult> {
-	const start = Date.now();
-	let ttftMs = 0;
-	let output = "";
-
-	return new Promise((resolve, reject) => {
-		const child = spawn("agy", ["-p", prompt, "--model", "gemini-3.7-flash-high", "--effort", effort], {
-			stdio: ["ignore", "pipe", "pipe"],
-			env: process.env,
-		});
-		child.on("error", () => {
-			resolve({
-				target: "Antigravity CLI (agy)",
-				ttftMs: 0,
-				totalMs: 0,
-				outputChars: 0,
-				charsPerSec: 0,
-				outputSnippet: "[Unavailable in headless environment]",
-			});
-		});
-
-		child.stdout.on("data", (d: Buffer) => {
-			if (!ttftMs) ttftMs = Date.now() - start;
-			output += d.toString();
-		});
-
-		child.on("close", (code) => {
-			const totalMs = Date.now() - start;
-			if (code !== 0) {
-				resolve({
-					target: "Antigravity CLI (agy)",
-					ttftMs: 0,
-					totalMs: 0,
-					outputChars: 0,
-					charsPerSec: 0,
-					outputSnippet: `[Unavailable in headless container: exit ${code}]`,
-				});
-				return;
-			}
-			resolve({
-				target: "Antigravity CLI (agy)",
-				ttftMs: ttftMs || totalMs,
-				totalMs,
-				outputChars: output.length,
-				charsPerSec: Math.round((output.length / (totalMs / 1000))),
-				outputSnippet: output.trim().slice(0, 100).replace(/\n/g, " "),
-			});
-		});
-	});
 }
 
 async function runPiStream(

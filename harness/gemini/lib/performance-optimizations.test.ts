@@ -69,11 +69,19 @@ interface Http2PoolTestState {
 }
 
 const MODEL_SPEC: CloudCodeModelSpec = {
-	id: "benchmark",
-	name: "Benchmark",
-	backend: "benchmark",
+	id: "gemini-3.7-flash",
+	name: "Gemini 3.7 Flash",
+	backend: "gemini-3.7-flash-tiered",
 	effort: "high",
 	maxTokens: 1024,
+};
+
+const PRO_MODEL_SPEC: CloudCodeModelSpec = {
+	id: "gemini-3.1-pro",
+	name: "Gemini 3.1 Pro",
+	backend: "gemini-3.1-pro-low",
+	effort: "high",
+	maxTokens: 8192,
 };
 
 describe("CloudCode performance contracts", () => {
@@ -302,7 +310,7 @@ describe("CloudCode performance contracts", () => {
 		}
 	});
 
-	test("maps reasoning off to a zero server-side thinking budget", () => {
+	test("uses zero budget only for Flash models when reasoning is disabled", () => {
 		expect(
 			GeminiConversationBuilder.resolveThinkingConfig(MODEL_SPEC, {
 				reasoning: "off",
@@ -313,6 +321,16 @@ describe("CloudCode performance contracts", () => {
 				disableReasoning: true,
 			}),
 		).toEqual({ thinkingBudget: 0, includeThoughts: false });
+		expect(
+			GeminiConversationBuilder.resolveThinkingConfig(PRO_MODEL_SPEC, {
+				reasoning: "off",
+			}),
+		).toBeUndefined();
+		expect(
+			GeminiConversationBuilder.resolveThinkingConfig(PRO_MODEL_SPEC, {
+				disableReasoning: true,
+			}),
+		).toBeUndefined();
 	});
 
 	test("keeps surrogate sanitization semantics for clean, paired, and unpaired input", () => {

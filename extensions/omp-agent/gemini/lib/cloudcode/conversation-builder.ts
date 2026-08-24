@@ -66,8 +66,11 @@ export class GeminiConversationBuilder {
 
 	public static resolveThinkingConfig(spec: CloudCodeModelSpec, options?: SimpleStreamOptions) {
 		const level = options?.reasoning;
+		const isFlash = spec.id.includes("flash") || spec.backend.includes("flash");
 		if (level === "off" || options?.disableReasoning === true) {
-			return { thinkingBudget: 0, includeThoughts: false };
+			return isFlash
+				? { thinkingBudget: 0, includeThoughts: false }
+				: undefined;
 		}
 		if (level === "minimal") {
 			return { thinkingLevel: "low", includeThoughts: false };
